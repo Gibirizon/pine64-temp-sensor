@@ -1,6 +1,6 @@
 import time
 
-import smbus2
+from smbus2 import SMBus
 
 # Constants
 TEMP_NO_HOLD = 0xF3
@@ -9,7 +9,7 @@ DEVICE_ADDRESS = 0x40
 I2C_BUS = 0  # /dev/i2c-0
 
 
-def get_temp(bus):
+def get_temp(bus: SMBus):
     # Write the TEMP_NO_HOLD command
     bus.write_byte(DEVICE_ADDRESS, TEMP_NO_HOLD)
 
@@ -49,11 +49,10 @@ def get_relative_humidity(bus):
 def main():
     try:
         # Open the I2C bus
-        bus = smbus2.SMBus(I2C_BUS)
-
-        # Get temperature and humidity
-        temp_f, _ = get_temp(bus)
-        humidity = get_relative_humidity(bus)
+        with SMBus(I2C_BUS) as bus:
+            # Get temperature and humidity
+            temp_f, _ = get_temp(bus)
+            humidity = get_relative_humidity(bus)
 
         print(f"temp={temp_f:.2f} humidity={humidity}")
 
@@ -63,4 +62,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

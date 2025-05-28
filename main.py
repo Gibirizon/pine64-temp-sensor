@@ -1,63 +1,27 @@
-import time
+"""
+Main entry point for the temperature and humidity monitoring system.
+"""
 
-from smbus2 import SMBus
+import logging
 
-# Constants
-TEMP_NO_HOLD = 0xF3
-HUMIDITY = 0xF5
-DEVICE_ADDRESS = 0x40
-I2C_BUS = 0  # /dev/i2c-0
+from src.measurement_system import MeasurementSystem
 
 
-def get_temp(bus: SMBus):
-    # Write the TEMP_NO_HOLD command
-    bus.write_byte(DEVICE_ADDRESS, TEMP_NO_HOLD)
-
-    # Wait for the measurement to complete
-    time.sleep(0.5)
-
-    # Read 2 bytes of data
-    msb = bus.read_byte(DEVICE_ADDRESS)
-    lsb = bus.read_byte(DEVICE_ADDRESS)
-
-    # Calculate temperature
-    temp = ((msb * 256) + lsb) & 0xFFFC
-    temp_c = -46.85 + (175.72 * float(temp) / 65536.0)
-    temp_f = temp_c * 1.8 + 32
-
-    return temp_f, temp_c
-
-
-def get_relative_humidity(bus):
-    # Write the HUMIDITY command
-    bus.write_byte(DEVICE_ADDRESS, HUMIDITY)
-
-    # Wait for the measurement to complete
-    time.sleep(0.5)
-
-    # Read 2 bytes of data
-    msb = bus.read_byte(DEVICE_ADDRESS)
-    lsb = bus.read_byte(DEVICE_ADDRESS)
-
-    # Calculate humidity
-    data = ((msb * 256) + lsb) & 0xFFFC
-    humidity = ((125 * data) // 65536) - 6
-
-    return humidity
+def configure_logging():
+    file_handler = logging.FileHandler("measurement.log")
+    stream_handler = logging.StreamHandler()
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        handlers=[file_handler, stream_handler],
+    )
 
 
 def main():
-    try:
-        # Open the I2C bus
-        with SMBus(I2C_BUS) as bus:
-            # Get temperature and humidity
-            temp_f, _ = get_temp(bus)
-            humidity = get_relative_humidity(bus)
+    configure_logging()
 
-        print(f"temp={temp_f:.2f} humidity={humidity}")
-
-    except Exception as e:
-        print(f"Error: {e}")
+    system = MeasurementSystem()
+    system.run_measurement()
 
 
 if __name__ == "__main__":

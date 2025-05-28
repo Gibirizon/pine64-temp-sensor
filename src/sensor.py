@@ -24,50 +24,28 @@ class TemperatureHumiditySensor:
         self.device_address = device_address
         self.measurement_delay = 0.5  # seconds
 
-    def get_temperature(self, config: SensorConfig) -> float:
+    def get_temperature_or_humidity(self, measurement_type: SensorConfig) -> float:
         """
-        Read temperature from the sensor.
+        Read temperature/humidity from the sensor.
 
         Returns:
-            Temperature in Celsius
+            Measured data
         """
         with SMBus(self.i2c_bus) as bus:
-            # Write the TEMP_NO_HOLD command
-            bus.write_byte(self.device_address, config.measure)
+            # Write the TEMP_NO_HOLD or HUMIDITY_NO_HOLD command
+            bus.write_byte(self.device_address, measurement_type.measure)
 
             # Wait for the measurement to complete
             time.sleep(self.measurement_delay)
 
             # Read 2 bytes of data
-            msb = bus.read_byte(self.device_address)
-            lsb = bus.read_byte(self.device_address)
+            most_significant_byte = bus.read_byte(self.device_address)
+            least_significant_byte = bus.read_byte(self.device_address)
 
-            # Calculate temperature
-            data = ((msb << 8) | lsb) & 0xFFFC
-            temp_c = config.offset + (config.multiplier * float(data) / 65536.0)
+            # Calculate temperature / humidity based on constants values
+            data = ((most_significant_byte << 8) | least_significant_byte) & 0xFFFC
+            converted_result = measurement_type.offset + (
+                measurement_type.multiplier * float(data) / 65536.0
+            )
 
-            return temp_c
-
-    def get_humidity(self, config: SensorConfig) -> float:
-        """
-        Read relative humidity from the sensor.
-
-        Returns:
-            Relative humidity as percentage
-        """
-        with SMBus(self.i2c_bus) as bus:
-            # Write the HUMIDITY command
-            bus.write_byte(self.device_address, config.measure)
-
-            # Wait for the measurement to complete
-            time.sleep(self.measurement_delay)
-
-            # Read 2 bytes of data
-            msb = bus.read_byte(self.device_address)
-            lsb = bus.read_byte(self.device_address)
-
-            # Calculate humidity
-            data = ((msb << 8) | lsb) & 0xFFFC
-            humidity = ((config.multiplier * data) // 65536) - config.offset
-
-            return humidity
+            return converted_result

@@ -32,11 +32,11 @@ class MeasurementSystem:
         try:
             # Read sensor data
             logger.info("Reading sensor data...")
-            temperature = self.sensor.get_temperature(Sensor.TEMPERATURE)
-            humidity = self.sensor.get_humidity(Sensor.HUMIDITY)
+            temperature = self.sensor.get_temperature_or_humidity(Sensor.TEMPERATURE)
+            humidity = self.sensor.get_temperature_or_humidity(Sensor.HUMIDITY)
             timestamp = datetime.now()
 
-            logger.info(f"Measured: temp={temperature:.2f}°C, humidity={humidity}%")
+            logger.info(f"Measured: temp={temperature:.2f}°C, humidity={humidity:.2f}%")
 
         except Exception as e:
             logger.error(f"Error during measurement cycle: {e}")

@@ -4,6 +4,7 @@ from datetime import datetime
 
 from smbus2 import SMBus
 
+from src.chart_generator import ChartGenerator
 from src.config import Sensor, SensorConfig
 from src.database import DatabaseManager
 
@@ -16,7 +17,7 @@ class MeasurementSystem:
     _i2c_bus: int
     _device_address: int
     _measurement_delay: float
-    _db_manager: DatabaseManager
+    _chart_generator: ChartGenerator
 
     def __init__(
         self,
@@ -34,6 +35,8 @@ class MeasurementSystem:
         self._i2c_bus = i2c_bus
         self._device_address = device_address
         self._measurement_delay = measurement_delay  # seconds
+
+        self._chart_generator = ChartGenerator()
 
     def run_measurement(self):
         """
@@ -56,8 +59,14 @@ class MeasurementSystem:
             logger.info("Storing data in database...")
             with DatabaseManager() as db_manager:
                 db_manager.insert_measurement(temperature, humidity, timestamp)
-                test = db_manager.get_all_measurements()
-                logger.info(test)
+                all_measurements = db_manager.get_all_measurements()
+                logger.info(all_measurements)
+
+            # Generate charts
+            logger.info("Generating charts...")
+            self._chart_generator.generate_charts(all_measurements)
+
+            logger.info("Measurement cycle completed successfully")
 
         except Exception as e:
             logger.error(f"Error during measurement cycle: {e}")

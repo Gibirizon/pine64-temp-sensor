@@ -14,3 +14,6 @@ wheels/
 
 # database
 *.db
+
+# generated charts
+*.png

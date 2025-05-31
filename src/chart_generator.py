@@ -8,7 +8,8 @@ import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
-from .database import Measurement
+from src.config import Stats
+from src.database import Measurement
 
 
 class ChartGenerator:
@@ -52,9 +53,6 @@ class ChartGenerator:
         # Generate humidity chart
         self._generate_humidity_chart(timestamps, humidities)
 
-        # Generate combined chart
-        # self._generate_combined_chart(timestamps, temperatures, humidities)
-
         print(f"Charts saved to {self._output_dir}/")
 
     def _generate_temperature_chart(
@@ -84,8 +82,11 @@ class ChartGenerator:
         # Format x-axis
         self._format_time_axis(ax, timestamps)
 
+        if temperatures:
+            self._add_stats(ax, temperatures)
+
         # Add legend
-        ax.legend(loc="upper right")
+        ax.legend(loc="upper left")
 
         fig.tight_layout()
 
@@ -124,8 +125,11 @@ class ChartGenerator:
         # Format x-axis
         self._format_time_axis(ax, timestamps)
 
+        if humidities:
+            self._add_stats(ax, humidities)
+
         # Add legend
-        ax.legend(loc="upper right")
+        ax.legend(loc="upper left")
 
         fig.tight_layout()
 
@@ -139,11 +143,33 @@ class ChartGenerator:
         """Format the time axis for better readability."""
         if len(timestamps) > 1:
             ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m-%d %H:%M"))
-            interval = max(1, len(timestamps) // 10)
-            # ax.xaxis.set_major_locator(mdates.HourLocator(interval=interval))
             ax.xaxis.set_major_locator(mdates.AutoDateLocator())
 
             # Rotate labels for better readability
             for label in ax.get_xticklabels():
                 label.set_rotation(45)
                 label.set_horizontalalignment("right")
+
+    def _add_stats(self, ax: Axes, measurements: list[float]):
+        """Add temperature statistics text box to the axes."""
+        avg_result = sum(measurements) / len(measurements)
+        min_measurement = min(measurements)
+        max_measurement = max(measurements)
+        stats_text = f"Avg: {avg_result:.1f}°C\nMin: {min_measurement:.1f}°C\nMax: {max_measurement:.1f}°C"
+
+        # position
+        x, y = Stats.UPPER_RIGHT_CORNER
+
+        ax.text(
+            x,
+            y,
+            stats_text,
+            transform=ax.transAxes,
+            verticalalignment=Stats.VERTICAL_ALIGNMENT,
+            horizontalalignment=Stats.HORIZONTAL_ALIGNMENT,
+            bbox=dict(
+                boxstyle=f"round,pad={Stats.PAD}",
+                facecolor=Stats.FACECOLOR,
+                alpha=Stats.ALPHA,
+            ),
+        )

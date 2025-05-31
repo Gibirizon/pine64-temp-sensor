@@ -6,9 +6,8 @@ from pathlib import Path
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
-from matplotlib.figure import Figure
 
-from src.config import Stats
+from src.config import Chart, ChartConfig, Font, Stats
 from src.database import Measurement
 
 
@@ -48,94 +47,58 @@ class ChartGenerator:
         humidities = [m.humidity for m in measurements]
 
         # Generate temperature chart
-        self._generate_temperature_chart(timestamps, temperatures)
+        self._generate_chart(timestamps, temperatures, Chart.TEMPERATURE)
 
         # Generate humidity chart
-        self._generate_humidity_chart(timestamps, humidities)
+        self._generate_chart(timestamps, humidities, Chart.HUMIDITY)
 
         print(f"Charts saved to {self._output_dir}/")
 
-    def _generate_temperature_chart(
-        self, timestamps: list[datetime], temperatures: list[float]
+    def _generate_chart(
+        self,
+        timestamps: list[datetime],
+        measurements: list[float],
+        chart_type: ChartConfig,
     ):
-        """Generate and save temperature chart using OOP matplotlib style."""
-        fig, ax = plt.subplots(figsize=(12, 6))
+        """Generate and save chart using OOP matplotlib style."""
+        fig, ax = plt.subplots(figsize=chart_type.figsize)
 
         # Plot temperature data
         ax.plot(
             timestamps,  # pyright: ignore[reportArgumentType]
-            temperatures,
-            "b-",
-            linewidth=2,
-            marker="o",
-            markersize=4,
-            label="Temperature",
+            measurements,
+            f"{chart_type.color.value}-",
+            linewidth=chart_type.linewidth,
+            marker=chart_type.marker,
+            markersize=chart_type.markersize,
+            label=chart_type.label,
         )
 
         # Configure axes
-        ax.set_title("Temperature Over Time", fontsize=16, fontweight="bold")
-        ax.set_xlabel("Time", fontsize=12)
-        ax.set_ylabel("Temperature (°C)", fontsize=12)
-        ax.grid(True, alpha=0.3)
-        ax.set_facecolor("#f8f9fa")
+        ax.set_title(chart_type.title, fontsize=Font.TITLE, fontweight=Font.WEIGHT)
+        ax.set_xlabel(chart_type.xlabel, fontsize=Font.LABEL)
+        ax.set_ylabel(chart_type.ylabel, fontsize=Font.LABEL)
+
+        if chart_type == Chart.HUMIDITY:
+            ax.set_ylim(0, 100)  # Humidity is always 0-100%
+
+        ax.grid(True, alpha=chart_type.alpha)
+        ax.set_facecolor(chart_type.facecolor)
 
         # Format x-axis
         self._format_time_axis(ax, timestamps)
 
-        if temperatures:
-            self._add_stats(ax, temperatures)
+        if measurements:
+            self._add_stats(ax, measurements)
 
         # Add legend
-        ax.legend(loc="upper left")
+        ax.legend(loc=chart_type.legend)
 
         fig.tight_layout()
 
         # Save using pathlib
-        output_path = self._output_dir / "temperature.png"
-        fig.savefig(output_path, dpi=300, bbox_inches="tight")
-        fig.clear()
-        plt.close(fig)
-
-    def _generate_humidity_chart(
-        self, timestamps: list[datetime], humidities: list[float]
-    ):
-        """Generate and save humidity chart using OOP matplotlib style."""
-        fig = Figure(figsize=(12, 6))
-        ax = fig.add_subplot(111)
-
-        # Plot humidity data
-        ax.plot(
-            timestamps,  # pyright: ignore[reportArgumentType]
-            humidities,
-            "g-",
-            linewidth=2,
-            marker="s",
-            markersize=4,
-            label="Humidity",
-        )
-
-        # Configure axes
-        ax.set_title("Humidity Over Time", fontsize=16, fontweight="bold")
-        ax.set_xlabel("Time", fontsize=12)
-        ax.set_ylabel("Relative Humidity (%)", fontsize=12)
-        ax.set_ylim(0, 100)  # Humidity is always 0-100%
-        ax.grid(True, alpha=0.3)
-        ax.set_facecolor("#f8f9fa")
-
-        # Format x-axis
-        self._format_time_axis(ax, timestamps)
-
-        if humidities:
-            self._add_stats(ax, humidities)
-
-        # Add legend
-        ax.legend(loc="upper left")
-
-        fig.tight_layout()
-
-        # Save using pathlib
-        output_path = self._output_dir / "humidity.png"
-        fig.savefig(output_path, dpi=300, bbox_inches="tight")
+        output_path = self._output_dir / chart_type.filename
+        fig.savefig(output_path, dpi=chart_type.dpi, bbox_inches="tight")
         fig.clear()
         plt.close(fig)
 

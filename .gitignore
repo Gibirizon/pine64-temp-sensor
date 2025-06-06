@@ -17,3 +17,6 @@ wheels/
 
 # generated charts
 *.png
+
+# setup files
+*.ini

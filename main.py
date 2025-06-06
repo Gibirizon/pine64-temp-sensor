@@ -2,6 +2,7 @@
 Main entry point for the temperature and humidity monitoring system.
 """
 
+import argparse
 import logging
 
 from src.measurement_system import MeasurementSystem
@@ -17,9 +18,24 @@ def configure_logging():
     )
 
 
+def parse_arguments() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    _ = parser.add_argument(
+        "-s",
+        "--setup_file",
+        metavar="setupfile",
+        help="setup file containing parameters for mail sending",
+        required=True,
+    )
+
+    args = parser.parse_args()
+    return args
+
+
 def main():
     configure_logging()
 
+    mail_args = parse_arguments()
     system = MeasurementSystem()
     system.run_measurement()
 

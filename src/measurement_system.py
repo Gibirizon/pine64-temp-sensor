@@ -5,8 +5,9 @@ from datetime import datetime
 from smbus2 import SMBus
 
 from src.chart_generator import ChartGenerator
-from src.config import Sensor, SensorConfig
+from src.config import LOWER_TEMP_THRESHOLD, Sensor, SensorConfig
 from src.database import DatabaseManager
+from src.mailer import Mailer
 
 logger = logging.getLogger(__name__)
 
@@ -18,12 +19,14 @@ class MeasurementSystem:
     _device_address: int
     _measurement_delay: float
     _chart_generator: ChartGenerator
+    _setup_file: str
 
     def __init__(
         self,
         i2c_bus: int = 0,
         device_address: int = 0x40,
         measurement_delay: float = 0.5,
+        setup_file: str = "config.ini",
     ):
         """
         Initialize the measurement system.
@@ -35,6 +38,7 @@ class MeasurementSystem:
         self._i2c_bus = i2c_bus
         self._device_address = device_address
         self._measurement_delay = measurement_delay  # seconds
+        self._setup_file = setup_file
 
         self._chart_generator = ChartGenerator()
 
@@ -95,4 +99,15 @@ class MeasurementSystem:
                 measurement_type.multiplier * float(data) / 65536.0
             )
 
+            if (
+                measurement_type == Sensor.TEMPERATURE
+                and LOWER_TEMP_THRESHOLD <= converted_result
+            ):
+                self.notify_low_temperature(converted_result)
+
             return converted_result
+
+    def notify_low_temperature(self, temperature: float):
+        logger.warning(f"Temperature is below threshold: {temperature:.2f}°C")
+        mailer = Mailer(self._setup_file)
+        mailer.send_email(temperature)

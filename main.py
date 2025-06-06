@@ -36,7 +36,7 @@ def main():
     configure_logging()
 
     mail_args = parse_arguments()
-    system = MeasurementSystem()
+    system = MeasurementSystem(setup_file=mail_args.setup_file)
     system.run_measurement()
 
 

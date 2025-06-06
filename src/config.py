@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import final
 
+LOWER_TEMP_THRESHOLD = 20
+
 
 @dataclass(frozen=True)
 class SensorConfig:

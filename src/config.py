@@ -3,6 +3,8 @@ from enum import Enum
 from typing import final
 
 LOWER_TEMP_THRESHOLD = 20
+MAIL_SECTION = "MAIL"
+REQUIRED_MAIL_INFO = ("sender", "password", "server", "port", "recipient")
 
 
 @dataclass(frozen=True)

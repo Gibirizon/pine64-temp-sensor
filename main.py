@@ -26,6 +26,7 @@ def parse_arguments() -> argparse.Namespace:
         metavar="setupfile",
         help="setup file containing parameters for mail sending",
         required=True,
+        type=str,
     )
 
     args = parser.parse_args()
@@ -36,7 +37,7 @@ def main():
     configure_logging()
 
     mail_args = parse_arguments()
-    system = MeasurementSystem(setup_file=mail_args.setup_file)
+    system = MeasurementSystem(setup_file=mail_args.setup_file)  # pyright: ignore[reportAny]
     system.run_measurement()
 
 

@@ -1,4 +1,6 @@
 import configparser
+import smtplib
+import ssl
 from pathlib import Path
 from typing import TypedDict
 
@@ -39,4 +41,14 @@ class Mailer:
             raise ValueError(msg)
 
     def send_email(self, temperature: float):
-        pass
+        # Create a secure SSL context
+        context = ssl.create_default_context()
+
+        with smtplib.SMTP_SSL(
+            self._mail_info["server"], self._mail_info["port"], context=context
+        ) as server:
+            _ = server.login(self._mail_info["sender"], self._mail_info["password"])
+            msg = f"Subject: Temperature Alert\n\nTemperature: {temperature}"
+            _ = server.sendmail(
+                self._mail_info["sender"], self._mail_info["recipient"], msg
+            )

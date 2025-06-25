@@ -1,6 +1,7 @@
 import logging
 import time
 from datetime import datetime
+from pathlib import Path
 
 from smbus2 import SMBus
 
@@ -19,7 +20,7 @@ class MeasurementSystem:
     _device_address: int
     _measurement_delay: float
     _chart_generator: ChartGenerator
-    _setup_file: str
+    _setup_file: Path
 
     def __init__(
         self,
@@ -38,7 +39,7 @@ class MeasurementSystem:
         self._i2c_bus = i2c_bus
         self._device_address = device_address
         self._measurement_delay = measurement_delay  # seconds
-        self._setup_file = setup_file
+        self._setup_file = Path(setup_file)
 
         self._chart_generator = ChartGenerator()
 

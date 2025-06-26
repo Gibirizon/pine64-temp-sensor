@@ -1,10 +1,13 @@
 import configparser
 import smtplib
 import ssl
+from email.headerregistry import Address
+from email.message import EmailMessage
 from pathlib import Path
 from typing import TypedDict
 
 from src.config import MAIL_SECTION, REQUIRED_MAIL_INFO
+from src.email_templates import HTML_TEMPLATE, PLAIN_TEXT_TEMPLATE
 
 
 class MailInfo(TypedDict):
@@ -41,6 +44,24 @@ class Mailer:
             raise ValueError(msg)
 
     def send_email(self, temperature: float):
+        # Create the base message
+        msg = EmailMessage()
+        msg["Subject"] = "❄️ Temperature Alert: Below Freezing!"
+        msg["From"] = Address(
+            "Temperature Monitor", *self._mail_info["sender"].split("@")
+        )
+        msg["To"] = Address(
+            "System Administrator", *self._mail_info["recipient"].split("@")
+        )
+
+        # Plain text version
+        msg.set_content(PLAIN_TEXT_TEMPLATE.format(temperature=temperature))
+
+        # HTML version
+        msg.add_alternative(
+            HTML_TEMPLATE.format(temperature=temperature), subtype="html"
+        )
+
         # Create a secure SSL context
         context = ssl.create_default_context()
 
@@ -48,7 +69,6 @@ class Mailer:
             self._mail_info["server"], self._mail_info["port"], context=context
         ) as server:
             _ = server.login(self._mail_info["sender"], self._mail_info["password"])
-            msg = f"Subject: Temperature Alert\n\nTemperature: {temperature}"
             _ = server.sendmail(
-                self._mail_info["sender"], self._mail_info["recipient"], msg
+                self._mail_info["sender"], self._mail_info["recipient"], msg.as_string()
             )

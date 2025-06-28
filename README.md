@@ -4,16 +4,15 @@ A comprehensive monitoring system for the Pine A64 that reads temperature and hu
 
 ## 📋 Table of Contents
 
-- [Features](#features)
-- [Hardware Requirements](#hardware-requirements)
-- [Installation](#installation)
-- [Configuration](#configuration)
-- [Usage](#usage)
-- [Project Structure](#project-structure)
-- [System Architecture](#system-architecture)
-- [Data Visualization](#data-visualization)
-- [Alert System](#alert-system)
-- [Database Schema](#database-schema)
+- [Features](#-features)
+- [Hardware Requirements](#-hardware-requirements)
+- [Installation](#-installation)
+- [Configuration](#%EF%B8%8F-configuration)
+- [Usage](#-usage)
+- [Project Structure](#-project-structure)
+- [Data Visualization](#-data-visualization)
+- [Alert System](#-alert-system)
+- [Database Schema](#-database-schema)
 
 ## ✨ Features
 

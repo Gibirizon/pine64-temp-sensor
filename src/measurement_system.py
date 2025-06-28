@@ -102,7 +102,7 @@ class MeasurementSystem:
 
             if (
                 measurement_type == Sensor.TEMPERATURE
-                and LOWER_TEMP_THRESHOLD <= converted_result
+                and LOWER_TEMP_THRESHOLD >= converted_result
             ):
                 self.notify_low_temperature(converted_result)
 
